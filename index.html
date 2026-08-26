@@ -5,10 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REACH — Flood Risk Dashboard</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-fullscreen/2.4.0/Control.FullScreen.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-fullscreen/2.4.0/Control.FullScreen.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);padding:20px;min-height:100vh;}
@@ -74,7 +72,7 @@ table tbody tr:last-child td{border-bottom:none;}
     <h1>Refugee-site Early Warning and Alert for Climate-related Hazards (REACH)</h1>
     <p>Flood Risk &amp; Water Depth Assessment — East Africa Refugee Settlements</p>
     <div class="subtitle">Results generated using GloFAS forecasts starting 2026-08-24</div>
-    <div class="timestamp">Dashboard generated on 2026-08-26 11:55:06</div>
+    <div class="timestamp">Dashboard generated on 2026-08-26 12:17:19</div>
   </div>
   <div class="content">
     <div class="summary-grid">
@@ -308,7 +306,6 @@ function initializeMap() {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
-    map.addControl(new L.Control.Fullscreen());
 
     const sel = document.getElementById('countryFilter');
     uniqueCountries.forEach(c => {
