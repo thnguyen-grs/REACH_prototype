@@ -75,7 +75,7 @@ table tbody tr:last-child td{border-bottom:none;}
     <h1>Refugee-site Early Warning and Alert for Climate-related Hazards (REACH)</h1>
     <p>Flood Risk &amp; Water Depth Assessment — East Africa Refugee Settlements</p>
     <div class="subtitle">Results generated using GloFAS forecasts starting 2026-08-24</div>
-    <div class="timestamp">Dashboard generated on 2026-08-26 11:06:47</div>
+    <div class="timestamp">Dashboard generated on 2026-08-26 11:16:17</div>
   </div>
 
   <div class="content">
@@ -306,18 +306,40 @@ const allFeatures    = {"type": "FeatureCollection", "features": [{"id": "3", "t
 const uniqueCountries = ["BDI", "ETH", "KEN", "SDN", "SSD", "UGA"];
 
 function initializeMap() {
-  map = L.map('floodMap').setView([4.179511504102912, 36.52503335647384], 4);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors', maxZoom: 19
-  }).addTo(map);
-  map.addControl(new L.Control.Fullscreen());
-  const sel = document.getElementById('countryFilter');
-  uniqueCountries.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = opt.textContent = c;
-    sel.appendChild(opt);
-  });
-  addGeoJsonLayer(allFeatures);
+    map = L.map('floodMap').setView([4.179511504102912, 36.52503335647384], 4);
+
+    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    map.addControl(new L.Control.Fullscreen());
+
+    // Populate country dropdown
+    const sel = document.getElementById('countryFilter');
+    uniqueCountries.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = c;
+        sel.appendChild(opt);
+    });
+
+    // Wait for first tile batch to load, then add polygons
+    tileLayer.once('load', function() {
+        addGeoJsonLayer(allFeatures);
+        if (geoJsonLayer) {
+            const b = geoJsonLayer.getBounds();
+            if (b.isValid()) {
+                map.fitBounds(b, { padding: [30, 30] });
+            }
+        }
+    });
+
+    // Fallback: if tiles take too long, add polygons after 2 seconds anyway
+    setTimeout(function() {
+        if (!geoJsonLayer) {
+            addGeoJsonLayer(allFeatures);
+        }
+    }, 2000);
 }
 
 function riskColor(lvl) {
