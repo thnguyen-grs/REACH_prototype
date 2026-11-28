@@ -56,6 +56,8 @@ table tbody tr:last-child td{border-bottom:none;}
 .popup-table td{padding:3px;}
 .popup-table td:first-child{font-weight:bold;color:#667eea;width:45%;}
 .water-depth-row{background-color:#e3f2fd;}
+.site-link{color:#667eea;font-weight:600;text-decoration:underline;cursor:pointer;}
+.site-link:hover{color:#4c5fd0;}
 @media(max-width:768px){
   .filter-controls{grid-template-columns:1fr;}
   .header h1{font-size:1.7em;}
@@ -71,7 +73,7 @@ table tbody tr:last-child td{border-bottom:none;}
     <h1>Smart Alert</h1>
     <p>Flood Risk &amp; Water Depth Assessment — East Africa Refugee Settlements</p>
     <div class="subtitle">Results generated using GloFAS forecasts starting 2026-11-26</div>
-    <div class="timestamp">Dashboard generated on 2026-11-28 10:57:46</div>
+    <div class="timestamp">Dashboard generated on 2026-11-28 11:10:39</div>
   </div>
   <div class="content">
 
@@ -221,7 +223,7 @@ table tbody tr:last-child td{border-bottom:none;}
         </thead>
         <tbody>
     <tr data-name="Oliji" data-iso="UGA">
-        <td>Oliji</td>
+        <td><a href="#" class="site-link" data-key="UGAs001956" title="Show on map">Oliji</a></td>
         <td style="text-align:center;">UGA</td>
         <td style="text-align:center;">UGAs001956</td>
         <td style="background-color:#FF6B6B;font-weight:bold;">Very High</td>
@@ -232,7 +234,7 @@ table tbody tr:last-child td{border-bottom:none;}
         <td style="text-align:center;">4.3650</td>
     </tr>
     <tr data-name="Jourie" data-iso="SDN">
-        <td>Jourie</td>
+        <td><a href="#" class="site-link" data-key="SDNs007744" title="Show on map">Jourie</a></td>
         <td style="text-align:center;">SDN</td>
         <td style="text-align:center;">SDNs007744</td>
         <td style="background-color:#FF6B6B;font-weight:bold;">Very High</td>
@@ -243,7 +245,7 @@ table tbody tr:last-child td{border-bottom:none;}
         <td style="text-align:center;">1.7850</td>
     </tr>
     <tr data-name="Dagahaley" data-iso="KEN">
-        <td>Dagahaley</td>
+        <td><a href="#" class="site-link" data-key="KENs001088" title="Show on map">Dagahaley</a></td>
         <td style="text-align:center;">KEN</td>
         <td style="text-align:center;">KENs001088</td>
         <td style="background-color:#FF6B6B;font-weight:bold;">Very High</td>
@@ -272,6 +274,8 @@ const ZOOM_LEVEL      = 4;
 
 // ── Elements ──────────────────────────────────────────────────────────────
 let map, geoJsonLayer;
+let layersByCode = {};
+const keyOf = p => p.site_code || p.name;
 const countrySel = document.getElementById('countryFilter');
 const siteSel    = document.getElementById('siteFilter');
 const zoomInd    = document.getElementById('zoomIndicator');
@@ -297,6 +301,7 @@ function style(f) {
 
 // ── Popups & hover ────────────────────────────────────────────────────────
 function onEachFeature(f, layer) {
+    layersByCode[keyOf(f.properties)] = layer;
     const p   = f.properties;
     const fmt = v => (v != null && !isNaN(v)) ? parseFloat(v).toFixed(3) : 'N/A';
     const pop = (p.population != null && !isNaN(p.population))
@@ -322,6 +327,7 @@ function onEachFeature(f, layer) {
 // ── Map layers ────────────────────────────────────────────────────────────
 function addGeoJsonLayer(data) {
     if (geoJsonLayer) map.removeLayer(geoJsonLayer);
+    layersByCode = {};
     const clean = { ...data, features: data.features.filter(f => f.geometry !== null) };
     if (!clean.features.length) {
         console.warn('addGeoJsonLayer: no features with valid geometry');
@@ -410,6 +416,30 @@ function resetFilters() {
     populateSites();
     applyFilters();
 }
+
+// ── Go to a site from the priority table ─────────────────────────────────
+function goToSite(key) {
+    resetFilters();                       // make sure the site is drawn on the map
+    const layer = layersByCode[key];
+    if (!layer) { console.warn('No map polygon for', key); return; }
+
+    document.getElementById('floodMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    setTimeout(() => {
+        map.invalidateSize();
+        map.fitBounds(layer.getBounds(), { padding: [80, 80], maxZoom: 14 });
+        layer.setStyle({ weight: 4, color: '#000', fillOpacity: 0.95 });
+        layer.openPopup();
+        setTimeout(() => layer.setStyle(style(layer.feature)), 2500);   // remove highlight
+    }, 400);
+}
+
+document.querySelector('#priorityTable tbody').addEventListener('click', e => {
+    const link = e.target.closest('.site-link');
+    if (!link) return;
+    e.preventDefault();
+    goToSite(link.dataset.key);
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────
 function initializeMap() {
